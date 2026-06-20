@@ -13,7 +13,8 @@ return {
     PROP_INSET     = 10,    -- keep props this far inside each zone's edges
 
     HIDER_RING_RADIUS = 12, -- hiders scatter in a ring of this radius around center
-    RELEASE_OFFSET_Z  = 20,   -- seekers released this far -Z of arena center
+    RELEASE_OFFSET_Z  = 20, -- seekers released this far -Z of arena center
+    SEEKER_RELEASE_RING_RADIUS = 6, -- seekers spread in a ring this size on release
     PEN_SIZE     = 30,      -- glass pen footprint (studs, square)
     PEN_OFFSET_Z = 130,     -- pen center sits this far -Z of arena center (outside arena)
     PEN_SLOTS    = 12,      -- max seekers held; slots laid out in a grid

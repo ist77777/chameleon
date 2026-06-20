@@ -213,6 +213,7 @@ function MapBuilder.build()
         seekerPenCFrames    = penSlots,
         seekerReleaseCFrame = CFrame.new(0, FLOOR_TOP_Y + 3, -MapConfig.RELEASE_OFFSET_Z),
         hiderRingRadius     = MapConfig.HIDER_RING_RADIUS,
+        seekerReleaseRadius = MapConfig.SEEKER_RELEASE_RING_RADIUS,
     }
 end
 

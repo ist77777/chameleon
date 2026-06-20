@@ -142,7 +142,7 @@ local function runSeekPhase()
     end
     for i, seeker in ipairs(releasing) do
         local angle = (i / math.max(#releasing, 1)) * math.pi * 2
-        local r = 6
+        local r = MapRefs.seekerReleaseRadius
         teleportTo(seeker, MapRefs.seekerReleaseCFrame
             * CFrame.new(math.cos(angle) * r, 0, math.sin(angle) * r))
         setFrozen(seeker, false)
