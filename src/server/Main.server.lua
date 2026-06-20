@@ -5,10 +5,29 @@ local Shared       = ReplicatedStorage:WaitForChild("Shared", 10)
 local GameConfig   = require(Shared:WaitForChild("GameConfig"))
 local Remotes      = require(Shared:WaitForChild("RemoteEvents"))
 local RoundManager = require(script.Parent:WaitForChild("RoundManager"))
+local MapBuilder = require(script.Parent:WaitForChild("MapBuilder"))
+local MapRefs    = MapBuilder.build()
 
 local function broadcast(state, data)
     RoundManager.setState(state)
     Remotes.RoundStateChanged:FireAllClients(state, data or {})
+end
+
+local function teleportTo(player, cframe)
+    local char = player.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if hrp then hrp.CFrame = cframe end
+end
+
+local function setFrozen(player, frozen)
+    local char = player.Character
+    if not char then return end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.WalkSpeed  = frozen and 0 or 16
+        hum.JumpHeight = frozen and 0 or 7.2
+    end
 end
 
 -- Wire up touch-tag detection for a seeker's character
@@ -77,6 +96,29 @@ end
 local function runHidePhase()
     RoundManager.assignRoles()
     RoundManager.resetCharacters()
+
+    -- Scatter hiders in a ring around the center spawn
+    local hiders = {}
+    for _, p in ipairs(Players:GetPlayers()) do
+        if RoundManager.isHider(p) then table.insert(hiders, p) end
+    end
+    for i, hider in ipairs(hiders) do
+        local angle = (i / math.max(#hiders, 1)) * math.pi * 2
+        local r = MapRefs.hiderRingRadius
+        teleportTo(hider, MapRefs.hiderSpawnCFrame
+            * CFrame.new(math.cos(angle) * r, 0, math.sin(angle) * r))
+        setFrozen(hider, false)
+    end
+
+    -- Confine seekers to the glass pen, frozen
+    local slots = MapRefs.seekerPenCFrames
+    local si = 0
+    for seeker in pairs(RoundManager.getSeekers()) do
+        si += 1
+        teleportTo(seeker, slots[((si - 1) % #slots) + 1])
+        setFrozen(seeker, true)
+    end
+
     broadcast(RoundManager.State.HIDING, { duration = GameConfig.HIDE_DURATION })
 
     for seeker in pairs(RoundManager.getSeekers()) do
@@ -92,6 +134,19 @@ end
 -- SEEK PHASE — seekers hunt; ends on all-found or timeout
 local function runSeekPhase()
     broadcast(RoundManager.State.SEEKING, { duration = GameConfig.SEEK_DURATION })
+
+    -- Release seekers from the pen, spread in a ring so they don't pile up
+    local releasing = {}
+    for seeker in pairs(RoundManager.getSeekers()) do
+        table.insert(releasing, seeker)
+    end
+    for i, seeker in ipairs(releasing) do
+        local angle = (i / math.max(#releasing, 1)) * math.pi * 2
+        local r = MapRefs.seekerReleaseRadius
+        teleportTo(seeker, MapRefs.seekerReleaseCFrame
+            * CFrame.new(math.cos(angle) * r, 0, math.sin(angle) * r))
+        setFrozen(seeker, false)
+    end
 
     local winner
     for t = GameConfig.SEEK_DURATION, 1, -1 do
