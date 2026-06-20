@@ -85,7 +85,15 @@ local function showRoleFlash(role)
     end)
 end
 
+-- The server re-broadcasts the current state every second (to drive countdown
+-- timers), so we track the last state and fire one-shot effects (like the role
+-- flash) only when the state actually changes — not on every repeated message.
+local lastState = nil
+
 Remotes.RoundStateChanged.OnClientEvent:Connect(function(state, data)
+    local isTransition = state ~= lastState
+    lastState = state
+
     if state == "Lobby" then
         lobbyScreen.Enabled = true
         if data and data.waiting then
@@ -97,7 +105,9 @@ Remotes.RoundStateChanged.OnClientEvent:Connect(function(state, data)
 
     elseif state == "Hiding" then
         lobbyScreen.Enabled = false
-        showRoleFlash(player:GetAttribute("Role") or "Hider")
+        if isTransition then
+            showRoleFlash(player:GetAttribute("Role") or "Hider")
+        end
 
     elseif state == "Seeking" then
         lobbyScreen.Enabled = false
