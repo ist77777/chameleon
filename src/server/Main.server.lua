@@ -104,7 +104,7 @@ local function runHidePhase()
     end
     for i, hider in ipairs(hiders) do
         local angle = (i / math.max(#hiders, 1)) * math.pi * 2
-        local r = 12
+        local r = MapRefs.hiderRingRadius
         teleportTo(hider, MapRefs.hiderSpawnCFrame
             * CFrame.new(math.cos(angle) * r, 0, math.sin(angle) * r))
         setFrozen(hider, false)
@@ -135,10 +135,17 @@ end
 local function runSeekPhase()
     broadcast(RoundManager.State.SEEKING, { duration = GameConfig.SEEK_DURATION })
 
-    -- Release seekers from the pen into the arena
+    -- Release seekers from the pen, spread in a ring so they don't pile up
+    local releasing = {}
     for seeker in pairs(RoundManager.getSeekers()) do
+        table.insert(releasing, seeker)
+    end
+    for i, seeker in ipairs(releasing) do
+        local angle = (i / math.max(#releasing, 1)) * math.pi * 2
+        local r = 6
+        teleportTo(seeker, MapRefs.seekerReleaseCFrame
+            * CFrame.new(math.cos(angle) * r, 0, math.sin(angle) * r))
         setFrozen(seeker, false)
-        teleportTo(seeker, MapRefs.seekerReleaseCFrame)
     end
 
     local winner

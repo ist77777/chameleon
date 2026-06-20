@@ -147,6 +147,7 @@ end
 local function buildSeekerPen(folder)
     local s   = MapConfig.PEN_SIZE
     local cz  = -MapConfig.PEN_OFFSET_Z
+    -- Pen walls are half the arena wall height (visually distinct holding box)
     local h   = MapConfig.WALL_HEIGHT / 2
     local wt  = MapConfig.WALL_THICK
     local half = s / 2
@@ -210,7 +211,8 @@ function MapBuilder.build()
     return {
         hiderSpawnCFrame    = CFrame.new(0, FLOOR_TOP_Y + 3, 0),
         seekerPenCFrames    = penSlots,
-        seekerReleaseCFrame = CFrame.new(0, FLOOR_TOP_Y + 3, -20),
+        seekerReleaseCFrame = CFrame.new(0, FLOOR_TOP_Y + 3, -MapConfig.RELEASE_OFFSET_Z),
+        hiderRingRadius     = MapConfig.HIDER_RING_RADIUS,
     }
 end
 
